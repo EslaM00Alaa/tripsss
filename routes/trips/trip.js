@@ -161,8 +161,10 @@ router.get("/random3", async (req, res) => {
   }
 });
 
+
 router.delete("/trip/:id", isAdmin, async (req, res) => {
   try {
+    await client.query("DELETE FROM orders WHERE trip_id = $1 ;",[req.params.id]);
     await client.query("CALL delete_trip($1);", [req.params.id]);
     res.json({ msg: "done" });
   } catch (error) {
