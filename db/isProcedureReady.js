@@ -117,13 +117,14 @@ async function procedureReady() {
           IN input_duration VARCHAR(300),
           IN input_description VARCHAR(1500),
           IN input_image VARCHAR(300),
-          IN input_type INT
+          IN input_type INT,
+          IN input_video VARCHAR(500)
         )
         LANGUAGE plpgsql
         AS $$
         BEGIN
-          INSERT INTO trips (id, price, name, vehicle, duration, gudinjg, description, image)
-          VALUES (input_id, input_price, input_name, input_vehicle, input_duration, input_gudinjg, input_description, input_image);
+          INSERT INTO trips (id, price, name, vehicle, duration, gudinjg, description, image , video)
+          VALUES (input_id, input_price, input_name, input_vehicle, input_duration, input_gudinjg, input_description, input_image ,input_video );
        
           INSERT INTO trips_type (trip_id,type)
           VALUES (input_id,input_type);
@@ -141,7 +142,8 @@ async function procedureReady() {
           IN input_name VARCHAR(300),
           IN input_guiding VARCHAR(300),
           IN input_duration VARCHAR(300),
-          IN input_description VARCHAR(1500)
+          IN input_description VARCHAR(1500),
+          IN input_video VARCHAR(500)
       )
       RETURNS VOID
       LANGUAGE plpgsql
@@ -154,7 +156,47 @@ async function procedureReady() {
               name = input_name,
               gudinjg = input_guiding,
               duration = input_duration,
-              description = input_description
+              description = input_description,
+              video = input_video
+          WHERE id = input_trip_id;
+      
+          IF FOUND THEN
+              RETURN;
+          ELSE
+              RAISE EXCEPTION 'Trip with id % not found', input_trip_id;
+          END IF;
+      END;
+      $$;              
+        `,
+      },
+      {
+        name: "update_trip_image",
+        query: `
+        CREATE OR REPLACE FUNCTION update_trip_image ( 
+          IN input_trip_id VARCHAR(255),
+          IN input_price INT,
+          IN input_vehicle VARCHAR(300),
+          IN input_name VARCHAR(300),
+          IN input_guiding VARCHAR(300),
+          IN input_duration VARCHAR(300),
+          IN input_description VARCHAR(1500),
+          IN input_image VARCHAR(300),
+          IN input_video VARCHAR(500)
+      )
+      RETURNS VOID
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+          UPDATE trips 
+          SET 
+              price = input_price,
+              vehicle = input_vehicle, 
+              name = input_name,
+              gudinjg = input_guiding,
+              duration = input_duration,
+              description = input_description,
+              image = input_image ,
+              video = input_video
           WHERE id = input_trip_id;
       
           IF FOUND THEN
@@ -267,7 +309,8 @@ async function procedureReady() {
           gudinjg VARCHAR(300),
           duration VARCHAR(300),
           description VARCHAR(1500),
-          image VARCHAR(300) 
+          image VARCHAR(300) ,
+          video VARCHAR(500)
         )
         AS $$
         BEGIN
@@ -280,7 +323,8 @@ async function procedureReady() {
                 trips.gudinjg,
                 trips.duration,
                 trips.description,
-                trips.image 
+                trips.image,
+                trips.video
             FROM 
                 trips 
             WHERE   
@@ -300,11 +344,12 @@ async function procedureReady() {
             id VARCHAR(255),
             name VARCHAR(300),
             price INT,
-            vehicle VARCHAR(300), -- Corrected the column name from 'vechicle' to 'vehicle'
+            vehicle VARCHAR(300), 
             gudinjg VARCHAR(300),
             duration VARCHAR(300),
             description VARCHAR(1500),
-            image VARCHAR(300) 
+            image VARCHAR(300) ,
+            video VARCHAR(500)
         )
         AS $$
         BEGIN
@@ -313,11 +358,12 @@ async function procedureReady() {
                 trips.id,
                 trips.name,
                 trips.price,
-                trips.vehicle, -- Corrected the column name from 'vechicle' to 'vehicle'
+                trips.vehicle, 
                 trips.gudinjg, 
                 trips.duration,
                 trips.description,
-                trips.image
+                trips.image,
+                trips.video
             FROM 
                 trips 
             WHERE   

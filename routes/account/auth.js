@@ -25,7 +25,7 @@ router.post("/registerAdmin", async (req, res) => {
       `;
     const values = [name, mail, pass];
     const result = await client.query(query, values);
-
+ console.log(result.rows[0].id);
     let token = generateToken(result.rows[0].id, mail, "admin");
     res.json({ success: true, token, role: result.rows[0].role });
   } catch (error) {
