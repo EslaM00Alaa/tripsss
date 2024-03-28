@@ -25,8 +25,8 @@ router.post("/", isAdmin, photoUpload.single("image"), async (req, res) => {
     const { error } = validateTrip(req.body);
     if (error) return res.status(400).json({ msg: error.details[0].message });
 
-    const { price, name, duration, vehicle, gudinjg, description ,type } = req.body;
-    await client.query("CALL insert_trip($1, $2, $3, $4,$5,$6,$7,$8,$9);", [
+    const { price, name, duration, vehicle, gudinjg, description ,type ,video } = req.body;
+    await client.query("CALL insert_trip($1, $2, $3, $4,$5,$6,$7,$8,$9,$10);", [
       public_id,
       price,
       vehicle,
@@ -35,7 +35,8 @@ router.post("/", isAdmin, photoUpload.single("image"), async (req, res) => {
       duration,
       description,
       secure_url,
-      type
+      type,
+      video
     ]);
     res.json({ msg: "One tripe Inserted " });
     fs.unlink(imagePath, (err) => {
@@ -49,21 +50,37 @@ router.post("/", isAdmin, photoUpload.single("image"), async (req, res) => {
   }
 });
 
-router.put("/:id", isAdmin, async (req, res) => {
+// update  
+
+router.put("/:id", isAdmin,photoUpload.single("image"), async (req, res) => {
   try {
+    
+    const id = req.params.id;
+    const { price, name, duration, vehicle, gudinjg, description,video } = req.body;
+  let result ;
+
     const { error } = validateTrip(req.body);
     if (error) {
       return res.status(400).json({ msg: error.details[0].message });
     }
-    const id = req.params.id;
-    const { price, name, duration, vehicle, gudinjg, description } = req.body;
 
-    // Update the trip in the database
-    const result = await client.query(
-      "SELECT update_trip($1, $2, $3, $4, $5, $6, $7)",
-      [id, price, vehicle, name, gudinjg, duration, description]
-    );
+    if (req.file) {
+      const imagePath = path.join(__dirname, `../../images/${req.file.filename}`);
+      const uploadResult = await cloadinaryUploadImage(imagePath);
+      const { public_id, secure_url } = uploadResult;
 
+       result = await client.query(
+        "SELECT update_trip_image($1, $2, $3, $4, $5, $6, $7,$8,$9)",
+        [id, price, vehicle, name, gudinjg, duration, description,secure_url,video]
+      );
+    }
+    else
+    {
+        result = await client.query(
+        "SELECT update_trip($1, $2, $3, $4, $5, $6, $7,$8)",
+        [id, price, vehicle, name, gudinjg, duration, description,video]
+      );  
+    }
     // Check if the trip was successfully updated
     if (result.rows[0].update_trip !== null) {
       return res.json({ msg: "Trip updated successfully" });
@@ -75,6 +92,8 @@ router.put("/:id", isAdmin, async (req, res) => {
     return res.status(500).json({ msg: "Internal Server Error" });
   }
 });
+
+
 
 router.get("/trip/:id", async (req, res) => {
   try {

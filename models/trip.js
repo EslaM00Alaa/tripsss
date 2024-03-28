@@ -11,6 +11,7 @@ function validateTrip(obj)
         gudinjg:joi.string().trim().required(),
         description:joi.string().trim().required(),
         type:joi.number(),
+        video:joi.string().trim()
     })
     return schema.validate(obj)
 }

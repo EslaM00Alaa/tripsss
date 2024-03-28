@@ -1,5 +1,6 @@
 const { name } = require("body-parser");
 const client = require("./db");
+const { query } = require("express");
 
 async function procedureReady() {
   try {
@@ -117,13 +118,14 @@ async function procedureReady() {
           IN input_duration VARCHAR(300),
           IN input_description VARCHAR(1500),
           IN input_image VARCHAR(300),
-          IN input_type INT
+          IN input_type INT,
+          IN input_video VARCHAR(500)
         )
         LANGUAGE plpgsql
         AS $$
         BEGIN
-          INSERT INTO trips (id, price, name, vehicle, duration, gudinjg, description, image)
-          VALUES (input_id, input_price, input_name, input_vehicle, input_duration, input_gudinjg, input_description, input_image);
+          INSERT INTO trips (id, price, name, vehicle, duration, gudinjg, description, image , video)
+          VALUES (input_id, input_price, input_name, input_vehicle, input_duration, input_gudinjg, input_description, input_image ,input_video );
        
           INSERT INTO trips_type (trip_id,type)
           VALUES (input_id,input_type);
@@ -141,7 +143,8 @@ async function procedureReady() {
           IN input_name VARCHAR(300),
           IN input_guiding VARCHAR(300),
           IN input_duration VARCHAR(300),
-          IN input_description VARCHAR(1500)
+          IN input_description VARCHAR(1500),
+          IN input_video VARCHAR(500)
       )
       RETURNS VOID
       LANGUAGE plpgsql
@@ -154,7 +157,47 @@ async function procedureReady() {
               name = input_name,
               gudinjg = input_guiding,
               duration = input_duration,
-              description = input_description
+              description = input_description,
+              video = input_video
+          WHERE id = input_trip_id;
+      
+          IF FOUND THEN
+              RETURN;
+          ELSE
+              RAISE EXCEPTION 'Trip with id % not found', input_trip_id;
+          END IF;
+      END;
+      $$;              
+        `,
+      },
+      {
+        name: "update_trip_image",
+        query: `
+        CREATE OR REPLACE FUNCTION update_trip_image ( 
+          IN input_trip_id VARCHAR(255),
+          IN input_price INT,
+          IN input_vehicle VARCHAR(300),
+          IN input_name VARCHAR(300),
+          IN input_guiding VARCHAR(300),
+          IN input_duration VARCHAR(300),
+          IN input_description VARCHAR(1500),
+          IN input_image VARCHAR(300),
+          IN input_video VARCHAR(500)
+      )
+      RETURNS VOID
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+          UPDATE trips 
+          SET 
+              price = input_price,
+              vehicle = input_vehicle, 
+              name = input_name,
+              gudinjg = input_guiding,
+              duration = input_duration,
+              description = input_description,
+              image = input_image ,
+              video = input_video
           WHERE id = input_trip_id;
       
           IF FOUND THEN
@@ -174,42 +217,8 @@ async function procedureReady() {
             id VARCHAR(255),
             name VARCHAR(300),
             price INT,
-            vehicle VARCHAR(300), -- Corrected the column name from 'vechicle' to 'vehicle'
-            gudinjg VARCHAR(300),
-            duration VARCHAR(300),
-            description VARCHAR(1500),
-            image VARCHAR(300)
-        )
-        AS $$
-        BEGIN
-            RETURN QUERY
-            SELECT 
-                trips.id,
-                trips.name,
-                trips.price,
-                trips.vehicle, -- Corrected the column name from 'vechicle' to 'vehicle'
-                trips.gudinjg,
-                trips.duration,
-                trips.description,
-                trips.image 
-            FROM 
-                trips;
-        END;
-        $$ LANGUAGE plpgsql;        
-        `,
-      },
-      {
-        name: "get_trips_type",
-        query: `
-        CREATE OR REPLACE FUNCTION get_trips_type (
-          IN input_type INT
-        )
-        RETURNS TABLE (
-            id VARCHAR(255),
-            name VARCHAR(300),
-            price INT,
-            vehicle VARCHAR(300), 
-            gudinjg VARCHAR(300),
+            vehicle VARCHAR(300),
+            gudinjg VARCHAR(300), 
             duration VARCHAR(300),
             description VARCHAR(1500),
             image VARCHAR(300)
@@ -222,15 +231,54 @@ async function procedureReady() {
                 trips.name,
                 trips.price,
                 trips.vehicle,
-                trips.gudinjg,
+                trips.gudinjg, 
                 trips.duration,
                 trips.description,
                 trips.image 
             FROM 
-                trips JOIN trips_type ON trips.id = trips_type.trip_id 
-                WHERE trips_type.type = input_type ;
+                trips
+            WHERE trips.active = true; 
         END;
-        $$ LANGUAGE plpgsql;        
+        $$ LANGUAGE plpgsql;            
+        `,
+      },
+      {
+        name: "get_trips_type",
+        query: `
+        CREATE OR REPLACE FUNCTION get_trips_type (
+          IN input_type INT
+      )
+      RETURNS TABLE (
+          id VARCHAR(255),
+          name VARCHAR(300),
+          price INT,
+          vehicle VARCHAR(300), 
+          gudinjg VARCHAR(300),
+          duration VARCHAR(300),
+          description VARCHAR(1500),
+          image VARCHAR(300)
+      )
+      AS $$
+      BEGIN
+          RETURN QUERY
+          SELECT 
+              trips.id,
+              trips.name,
+              trips.price,
+              trips.vehicle,
+              trips.gudinjg,
+              trips.duration,
+              trips.description,
+              trips.image 
+          FROM 
+              trips 
+          JOIN 
+              trips_type ON trips.id = trips_type.trip_id 
+          WHERE 
+              trips_type.type = input_type AND trips.active = true;
+      END;
+      $$ LANGUAGE plpgsql;
+         
         `,
       },
       {
@@ -248,7 +296,8 @@ async function procedureReady() {
                 trips.id,
                 trips.name
             FROM 
-                trips;
+                trips
+            WHERE trips.active = true  ;
         END;
         $$ LANGUAGE plpgsql;         
         `,
@@ -267,7 +316,8 @@ async function procedureReady() {
           gudinjg VARCHAR(300),
           duration VARCHAR(300),
           description VARCHAR(1500),
-          image VARCHAR(300) 
+          image VARCHAR(300) ,
+          video VARCHAR(500)
         )
         AS $$
         BEGIN
@@ -280,11 +330,12 @@ async function procedureReady() {
                 trips.gudinjg,
                 trips.duration,
                 trips.description,
-                trips.image 
+                trips.image,
+                trips.video
             FROM 
                 trips 
             WHERE   
-                trips.id = input_trip_id; -- Added semicolon at the end of the WHERE clause
+                trips.id = input_trip_id AND trips.active = true ;
         END;
         $$ LANGUAGE plpgsql;
          
@@ -300,11 +351,12 @@ async function procedureReady() {
             id VARCHAR(255),
             name VARCHAR(300),
             price INT,
-            vehicle VARCHAR(300), -- Corrected the column name from 'vechicle' to 'vehicle'
+            vehicle VARCHAR(300), 
             gudinjg VARCHAR(300),
             duration VARCHAR(300),
             description VARCHAR(1500),
-            image VARCHAR(300) 
+            image VARCHAR(300) ,
+            video VARCHAR(500)
         )
         AS $$
         BEGIN
@@ -313,15 +365,16 @@ async function procedureReady() {
                 trips.id,
                 trips.name,
                 trips.price,
-                trips.vehicle, -- Corrected the column name from 'vechicle' to 'vehicle'
+                trips.vehicle, 
                 trips.gudinjg, 
                 trips.duration,
                 trips.description,
-                trips.image
+                trips.image,
+                trips.video
             FROM 
                 trips 
             WHERE   
-                (input_name IS NULL OR trips.name LIKE '%' || input_name || '%'); -- Added semicolon at the end of the WHERE clause
+                (input_name IS NULL OR trips.name LIKE '%' || input_name || '%') and trips.active = true;
         END;
         $$ LANGUAGE plpgsql;        
         `,
@@ -354,6 +407,7 @@ async function procedureReady() {
                 trips.image
             FROM 
                 trips 
+            WHERE trips.active = true     
             ORDER BY 
                 RANDOM()
             LIMIT 
@@ -390,6 +444,7 @@ async function procedureReady() {
                 trips.image
             FROM 
                 trips 
+            WHERE trips.active = true    
             ORDER BY 
                 RANDOM()
             LIMIT 
@@ -405,7 +460,7 @@ async function procedureReady() {
         LANGUAGE plpgsql
         AS $$
         BEGIN
-            DELETE FROM trips WHERE id = input_trip_id;
+        UPDATE trips SET active = false WHERE id = input_trip_id;
         END;
         $$;        
         `,
@@ -633,6 +688,107 @@ async function procedureReady() {
           $$;
         `,
       },
+      {
+        name:"insert_feedback",
+        query:`
+        CREATE OR REPLACE PROCEDURE insert_feedback(
+          p_user_id INT,
+          p_comment VARCHAR(255),
+          p_video VARCHAR(500)
+      )
+      AS $$
+      BEGIN
+          INSERT INTO feedbacks (user_id, comment, video)
+          VALUES (p_user_id, p_comment, p_video);
+      END;
+      $$ LANGUAGE plpgsql;
+        `
+      },
+      {
+        name:"insert_feedback2",
+        query:`
+        CREATE OR REPLACE PROCEDURE insert_feedback2(
+          p_user_id INT,
+          p_comment VARCHAR(255)
+      )
+      AS $$
+      BEGIN
+          INSERT INTO feedbacks (user_id, comment)
+          VALUES (p_user_id, p_comment);
+      END;
+      $$ LANGUAGE plpgsql;
+        `
+      },
+      {
+        name:"get_feedbacks_pagination",
+        query: `
+        CREATE OR REPLACE FUNCTION get_feedbacks_pagination(
+          p_page_num INT
+         )
+          RETURNS TABLE (
+          id INT,  
+          name VARCHAR(100),
+          comment VARCHAR(255),
+          video VARCHAR(500)
+         ) AS $$
+         BEGIN
+          RETURN QUERY 
+          SELECT f.id , a.name, f.comment, f.video
+          FROM feedbacks f
+          JOIN accounts a ON f.user_id = a.id
+          ORDER BY f.id
+          LIMIT 5 OFFSET (p_page_num - 1) * 5;
+          END;
+          $$ LANGUAGE plpgsql;
+         `
+      },
+      {
+        name:"get_feedbackss",
+        query: `
+        CREATE OR REPLACE FUNCTION get_feedbackss(
+          p_page_num INT,
+          userid INT 
+        )
+        RETURNS TABLE (
+          id INT,  
+          name VARCHAR(100),
+          comment VARCHAR(255),
+          video VARCHAR(500),
+          mine BOOLEAN
+        ) AS $$
+        BEGIN
+          RETURN QUERY 
+          SELECT 
+            f.id,
+            a.name,
+            f.comment,
+            f.video,
+            CASE 
+              WHEN f.user_id = userid THEN true
+              ELSE false
+            END AS mine
+          FROM feedbacks f
+          JOIN accounts a ON f.user_id = a.id
+          ORDER BY f.id
+          LIMIT 5 OFFSET (p_page_num - 1) * 5;
+        END;
+        $$ LANGUAGE plpgsql;
+         
+         `
+      },
+      {
+        name:"delete_feedbacks",
+        query: `
+        CREATE OR REPLACE PROCEDURE delete_feedbacks(
+          IN feedback_id INT
+      )
+      AS $$
+      BEGIN
+          DELETE FROM feedbacks WHERE id = feedback_id;
+      END;
+      $$ LANGUAGE plpgsql;
+         `
+      }
     ];
 
     let createdCount = 0;

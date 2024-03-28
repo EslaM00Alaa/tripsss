@@ -19,20 +19,20 @@ async function isReady() {
         INSERT INTO classes (name) VALUES ('Excursions from Hurghada');
         INSERT INTO classes (name) VALUES ('Excursions from Marsa Alam');
         INSERT INTO classes (name) VALUES ('Excursions from El-Ouseir');
-        INSERT INTO classes (name) VALUES ('Safaga Excursions')
+        INSERT INTO classes (name) VALUES ('Safaga Excursions');
         `,
       `
       CREATE TABLE IF NOT EXISTS images (
         image_id VARCHAR(255) PRIMARY KEY,
         image VARCHAR(255) NOT NULL
-      )
+      );
       `,
       `
         CREATE TABLE IF NOT EXISTS blogs (
           id VARCHAR(255) PRIMARY KEY,
           description VARCHAR(1000) NOT NULL,
           date VARCHAR(255) NOT NULL 
-        )
+        );
       `,
       `
           CREATE TABLE IF NOT EXISTS trips (
@@ -43,14 +43,16 @@ async function isReady() {
             duration VARCHAR(300),
             gudinjg VARCHAR(300),
             description VARCHAR(1500) NOT NULL,
-            image VARCHAR(300) NOT NULL
+            image VARCHAR(300) NOT NULL,
+            active BOOLEAN DEFAULT true,
+            video VARCHAR(500) NOT NULL
         )        
           `,
       `
           CREATE TABLE IF NOT EXISTS trips_type (
            trip_id VARCHAR(255) REFERENCES trips(id) ON DELETE CASCADE,
            type INT REFERENCES classes(id) ON DELETE CASCADE
-          )        
+          )  ;
           `,
       `
         CREATE TABLE IF NOT EXISTS contactus (
@@ -58,7 +60,7 @@ async function isReady() {
           name VARCHAR(255) NOT NULL,
           mail VARCHAR(255) NOT NULL ,
           description VARCHAR(600) NOT NULL 
-          )
+          );
         `,
       `
         CREATE TABLE IF NOT EXISTS accounts (
@@ -68,7 +70,7 @@ async function isReady() {
           role VARCHAR(255) NOT NULL DEFAULT 'user',
           pass VARCHAR(255) NOT NULL ,
           verify_code VARCHAR(255)
-        )
+        );
         `,
       `
         CREATE TABLE IF NOT EXISTS orders (
@@ -84,8 +86,16 @@ async function isReady() {
           room_num VARCHAR(255) NOT NULL,
           paid BOOLEAN DEFAULT FALSE,
           o_id VARCHAR(255) 
-         )
+         );
         `,
+        `
+        CREATE TABLE IF NOT EXISTS feedbacks (
+          id SERIAL PRIMARY KEY,
+          user_id INT REFERENCES accounts(id) NOT NULL,
+          comment VARCHAR(255) ,
+          video VARCHAR(500) 
+         );
+        `
     ];
 
     const tablesToCheck = [
@@ -97,6 +107,7 @@ async function isReady() {
       "contactus",
       "accounts",
       "orders",
+      "feedbacks"
     ];
 
     let c = 0;

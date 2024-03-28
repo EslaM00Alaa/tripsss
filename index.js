@@ -8,6 +8,8 @@ const express = require("express"),
   cors = require("cors"),
   app = express(),
   port = process.env.PORT,
+  fs=require('fs'),
+  path = require("path"),
   helmet = require("helmet"),
   client = require("./db/db");
 
@@ -19,11 +21,18 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(helmet());
-app.use(cors());
+
+app.use(express.urlencoded({ extended: true }))
+ .use(express.json())
+ .use(
+  helmet.contentSecurityPolicy({
+     useDefaults: true,
+     imgSrc: ["'self'", "https: data:"],
+     mediaSrc: ["*", "'self", "https:", "data:"],
+}))
+ .use(cors())
+.use('/videos', express.static(path.join(__dirname, 'videos')));
+
 
 
 app.use("/api/classes",require("./routes/classes/classes"));
@@ -33,7 +42,46 @@ app.use("/api/trips",require("./routes/trips/trip"));
 app.use("/api/contactus",require("./routes/contactus/contactUs"));
 app.use("/api/account",require("./routes/account/auth"));
 app.use("/api/orders",require("./routes/order/order"));
+app.use("/api/feedback",require("./routes/feedbacks/feedbacks"));
 
+
+// app.get('/api/videos/:filename', (req, res) => {
+//   const fileName = req.params.filename;
+//   console.log(fileName);
+//   const filePath = path.join(__dirname, 'videos', fileName); // Adjusted filePath
+//  console.log(filePath);
+//   if (!fs.existsSync(filePath)) { // Check if file exists
+//     return res.status(404).send('File not found');
+//   }
+
+//   const stat = fs.statSync(filePath);
+//   const fileSize = stat.size;
+//   const range = req.headers.range;
+
+//   if (range) {
+//     const parts = range.replace(/bytes=/, '').split('-');
+//     const start = parseInt(parts[0], 10);
+//     const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+//     const chunksize = end - start + 1;
+//     const file = fs.createReadStream(filePath, { start, end });
+//     const head = {
+//       'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+//       'Accept-Ranges': 'bytes',
+//       'Content-Length': chunksize,
+//       'Content-Type': 'video/mp4'
+//     };
+//     res.writeHead(206, head);
+//     file.pipe(res);
+//   } else {
+//     const head = {
+//       'Content-Length': fileSize,
+//       'Content-Type': 'video/mp4'
+//     };
+//     res.writeHead(200, head);
+//     fs.createReadStream(filePath).pipe(res);
+//   }
+// });
 
 
 app.get('/dealltable', async (req, res) => {
