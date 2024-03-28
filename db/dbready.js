@@ -44,7 +44,10 @@ async function isReady() {
             gudinjg VARCHAR(300),
             description VARCHAR(1500) NOT NULL,
             image VARCHAR(300) NOT NULL,
+<<<<<<< HEAD
             active BOOLEAN DEFAULT true,
+=======
+>>>>>>> ad0215d393653c39ac9e52131a697a6513945bd7
             video VARCHAR(500) NOT NULL
         )        
           `,
