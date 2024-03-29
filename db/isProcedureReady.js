@@ -313,10 +313,10 @@ async function procedureReady() {
           name VARCHAR(300),
           price INT,
           vehicle VARCHAR(300), 
-          gudinjg VARCHAR(300),
+          guiding VARCHAR(300),
           duration VARCHAR(300),
           description VARCHAR(1500),
-          image VARCHAR(300) ,
+          image VARCHAR(300),
           video VARCHAR(500)
         )
         AS $$
@@ -327,7 +327,7 @@ async function procedureReady() {
                 trips.name,
                 trips.price,
                 trips.vehicle,
-                trips.gudinjg,
+                trips.guiding,
                 trips.duration,
                 trips.description,
                 trips.image,
@@ -352,7 +352,7 @@ async function procedureReady() {
             name VARCHAR(300),
             price INT,
             vehicle VARCHAR(300), 
-            gudinjg VARCHAR(300),
+            guiding VARCHAR(300),
             duration VARCHAR(300),
             description VARCHAR(1500),
             image VARCHAR(300) ,
@@ -366,7 +366,7 @@ async function procedureReady() {
                 trips.name,
                 trips.price,
                 trips.vehicle, 
-                trips.gudinjg, 
+                trips.guiding, 
                 trips.duration,
                 trips.description,
                 trips.image,
@@ -387,8 +387,8 @@ async function procedureReady() {
             id VARCHAR(255),
             name VARCHAR(300),
             price INT,
-            vehicle VARCHAR(300), -- Corrected the column name from 'vechicle' to 'vehicle'
-            gudinjg VARCHAR(300),
+            vehicle VARCHAR(300),
+            guiding VARCHAR(300),
             duration VARCHAR(300),
             description VARCHAR(1500),
             image VARCHAR(300)
@@ -400,8 +400,8 @@ async function procedureReady() {
                 trips.id,
                 trips.name,
                 trips.price,
-                trips.vehicle, -- Corrected the column name from 'vechicle' to 'vehicle'
-                trips.gudinjg,
+                trips.vehicle,
+                trips.guiding,
                 trips.duration,
                 trips.description,
                 trips.image
@@ -424,8 +424,8 @@ async function procedureReady() {
             id VARCHAR(255),
             name VARCHAR(300),
             price INT,
-            vehicle VARCHAR(300), -- Corrected the column name from 'vechicle' to 'vehicle'
-            gudinjg VARCHAR(300),
+            vehicle VARCHAR(300),
+            guiding VARCHAR(300),
             duration VARCHAR(300),
             description VARCHAR(1500),
             image VARCHAR(300)
@@ -437,8 +437,8 @@ async function procedureReady() {
                 trips.id,
                 trips.name,
                 trips.price,
-                trips.vehicle, -- Corrected the column name from 'vechicle' to 'vehicle'
-                trips.gudinjg,
+                trips.vehicle,
+                trips.guiding,
                 trips.duration,
                 trips.description,
                 trips.image
@@ -464,7 +464,7 @@ async function procedureReady() {
         END;
         $$;        
         `,
-      },
+      },      
 
       {
         name: "insert_contactus",
