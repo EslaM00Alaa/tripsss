@@ -114,7 +114,7 @@ async function procedureReady() {
           IN input_price INT,
           IN input_vehicle VARCHAR(300),
           IN input_name VARCHAR(300),
-          IN input_gudinjg VARCHAR(300),
+          IN input_guiding VARCHAR(300),
           IN input_duration VARCHAR(300),
           IN input_description VARCHAR(1500),
           IN input_image VARCHAR(300),
@@ -124,8 +124,8 @@ async function procedureReady() {
         LANGUAGE plpgsql
         AS $$
         BEGIN
-          INSERT INTO trips (id, price, name, vehicle, duration, gudinjg, description, image , video)
-          VALUES (input_id, input_price, input_name, input_vehicle, input_duration, input_gudinjg, input_description, input_image ,input_video );
+          INSERT INTO trips (id, price, name, vehicle, duration, guiding, description, image , video)
+          VALUES (input_id, input_price, input_name, input_vehicle, input_duration, input_guiding, input_description, input_image ,input_video );
        
           INSERT INTO trips_type (trip_id,type)
           VALUES (input_id,input_type);
@@ -155,7 +155,7 @@ async function procedureReady() {
               price = input_price,
               vehicle = input_vehicle, 
               name = input_name,
-              gudinjg = input_guiding,
+              guiding = input_guiding,
               duration = input_duration,
               description = input_description,
               video = input_video
@@ -193,7 +193,7 @@ async function procedureReady() {
               price = input_price,
               vehicle = input_vehicle, 
               name = input_name,
-              gudinjg = input_guiding,
+              guiding = input_guiding,
               duration = input_duration,
               description = input_description,
               image = input_image ,
@@ -218,7 +218,7 @@ async function procedureReady() {
             name VARCHAR(300),
             price INT,
             vehicle VARCHAR(300),
-            gudinjg VARCHAR(300), 
+            guiding VARCHAR(300), 
             duration VARCHAR(300),
             description VARCHAR(1500),
             image VARCHAR(300)
@@ -231,7 +231,7 @@ async function procedureReady() {
                 trips.name,
                 trips.price,
                 trips.vehicle,
-                trips.gudinjg, 
+                trips.guiding, 
                 trips.duration,
                 trips.description,
                 trips.image 
@@ -253,7 +253,7 @@ async function procedureReady() {
           name VARCHAR(300),
           price INT,
           vehicle VARCHAR(300), 
-          gudinjg VARCHAR(300),
+          guiding VARCHAR(300),
           duration VARCHAR(300),
           description VARCHAR(1500),
           image VARCHAR(300)
@@ -266,7 +266,7 @@ async function procedureReady() {
               trips.name,
               trips.price,
               trips.vehicle,
-              trips.gudinjg,
+              trips.guiding,
               trips.duration,
               trips.description,
               trips.image 
