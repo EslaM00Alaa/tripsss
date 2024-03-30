@@ -105,14 +105,14 @@ router.post("/login", async (req, res) => {
       let active = false;
 
       if (role === "user") {
-        const result2 = await client.query("SELECT * FROM account_active WHERE user_id = $1 ;", [id]);
+        const result2 = await client.query("SELECT * FROM accountactive WHERE user_id = $1 ;", [id]);
 
         if (result2.rows.length > 0) {
           active = true;
         } else {
-          // If user is not active, send activation code and update account_active table
+          // If user is not active, send activation code and update accountactive table
           await sendCode(mail, id);
-          await client.query("INSERT INTO account_active (user_id) VALUES ($1);", [id]);
+          await client.query("INSERT INTO accountactive (user_id) VALUES ($1);", [id]);
         }
       } else {
         active = true;
@@ -215,7 +215,7 @@ router.post("/active", isUser, async (req, res) => {
     const isPasswordMatch = await bcrypt.compare(code, vcode);
 
     if (isPasswordMatch) {
-      await client.query("INSERT INTO account_active (user_id) VALUES ($1)", [user_id]);
+      await client.query("INSERT INTO accountactive (user_id) VALUES ($1)", [user_id]);
       return res.json({ msg: "Account activated successfully" });
     } else {
       return res.status(400).json({ msg: "Verification code is incorrect" });

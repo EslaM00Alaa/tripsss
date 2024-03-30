@@ -88,7 +88,7 @@ async function isReady() {
          );
         `,
         `
-        CREATE TABLE IF NOT EXISTS account_active (
+        CREATE TABLE IF NOT EXISTS accountactive (
           id SERIAL PRIMARY KEY,
           user_id INT REFERENCES accounts(id) NOT NULL
           );
@@ -105,7 +105,7 @@ async function isReady() {
       "accounts",
       "orders",
       "feedbacks",
-      "account_active"
+      "accountactive"
     ];
 
     let c = 0;
