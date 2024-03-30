@@ -106,7 +106,8 @@ async function isReady() {
       "orders",
       "feedbacks",
       "account_active",
-      "feedbacks"
+      "feedbacks",
+      "account_active"
     ];
 
     let c = 0;
