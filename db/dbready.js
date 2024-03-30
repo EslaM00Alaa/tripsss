@@ -114,19 +114,17 @@ async function isReady() {
       "accountactive"
     ];
 
-    let c = 0;
-
     for (let i = 0; i < tablesToCheck.length; i++) {
       const res = await client.query(tableCheckQuery, [tablesToCheck[i]]);
       const existingTable = res.rows[0].exists;
 
       if (!existingTable) {
-        await client.query(createTableQueries[c]);
-        c++;
+        await client.query(createTableQueries[i]); // Use the index i to access the corresponding query
+        console.log(`Table ${tablesToCheck[i]} created successfully!`);
       }
     }
 
-    console.log(`${c} tables created successfully!`);
+    console.log("All tables checked!");
   } catch (error) {
     console.error("Error occurred:", error);
   }
