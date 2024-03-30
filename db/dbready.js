@@ -86,6 +86,12 @@ async function isReady() {
           comment VARCHAR(255) ,
           video VARCHAR(500) 
          );
+        `,
+        `
+        CREATE TABLE IF NOT EXISTS account_active (
+          id SERIAL PRIMARY KEY,
+          user_id INT REFERENCES accounts(id) NOT NULL
+          );
         `
     ];
 
@@ -98,6 +104,8 @@ async function isReady() {
       "contactus",
       "accounts",
       "orders",
+      "feedbacks",
+      "account_active",
       "feedbacks"
     ];
 

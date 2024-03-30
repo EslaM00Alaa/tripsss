@@ -11,6 +11,7 @@ const isUser = async (req, res, next) => {
       const result = await client.query(sqlQuery, [mail, id]);
       if (result.rows[0].role=="user") {
         req.body.user_id = id ;
+        req.body.mail=mail ;
         next();
       } else {
         return res.status(403).json({ msg: "You do not have permission to perform this action." });

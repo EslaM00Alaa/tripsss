@@ -10,7 +10,8 @@ function validateOrder(obj) {
         flight_number: Joi.number().integer().required(),
         hotel_name: Joi.string().trim().required(),
         room_num: Joi.number().required(),
-        user_id:Joi.number()
+        user_id:Joi.number(),
+        mail:Joi.string()
     });
     return schema.validate(obj);
 }

@@ -464,7 +464,7 @@ async function procedureReady() {
         END;
         $$;        
         `,
-      },      
+      },
 
       {
         name: "insert_contactus",
@@ -614,8 +614,7 @@ async function procedureReady() {
           END;
           $$;
         `,
-      }
-        ,      
+      },
       {
         name: "paid_order",
         query: `
@@ -629,7 +628,7 @@ async function procedureReady() {
           END;
           $$;
         `,
-      },      
+      },
       {
         name: "check_total",
         query: `
@@ -689,8 +688,8 @@ async function procedureReady() {
         `,
       },
       {
-        name:"insert_feedback",
-        query:`
+        name: "insert_feedback",
+        query: `
         CREATE OR REPLACE PROCEDURE insert_feedback(
           p_user_id INT,
           p_comment VARCHAR(255),
@@ -702,11 +701,11 @@ async function procedureReady() {
           VALUES (p_user_id, p_comment, p_video);
       END;
       $$ LANGUAGE plpgsql;
-        `
+        `,
       },
       {
-        name:"insert_feedback2",
-        query:`
+        name: "insert_feedback2",
+        query: `
         CREATE OR REPLACE PROCEDURE insert_feedback2(
           p_user_id INT,
           p_comment VARCHAR(255)
@@ -717,10 +716,10 @@ async function procedureReady() {
           VALUES (p_user_id, p_comment);
       END;
       $$ LANGUAGE plpgsql;
-        `
+        `,
       },
       {
-        name:"get_feedbacks_pagination",
+        name: "get_feedbacks_pagination",
         query: `
         CREATE OR REPLACE FUNCTION get_feedbacks_pagination(
           p_page_num INT
@@ -740,10 +739,10 @@ async function procedureReady() {
           LIMIT 5 OFFSET (p_page_num - 1) * 5;
           END;
           $$ LANGUAGE plpgsql;
-         `
+         `,
       },
       {
-        name:"get_feedbackss",
+        name: "get_feedbackss",
         query: `
         CREATE OR REPLACE FUNCTION get_feedbackss(
           p_page_num INT,
@@ -774,10 +773,10 @@ async function procedureReady() {
         END;
         $$ LANGUAGE plpgsql;
          
-         `
+         `,
       },
       {
-        name:"delete_feedbacks",
+        name: "delete_feedbacks",
         query: `
         CREATE OR REPLACE PROCEDURE delete_feedbacks(
           IN feedback_id INT
@@ -787,8 +786,8 @@ async function procedureReady() {
           DELETE FROM feedbacks WHERE id = feedback_id;
       END;
       $$ LANGUAGE plpgsql;
-         `
-      }
+         `,
+      },
     ];
 
     let createdCount = 0;

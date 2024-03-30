@@ -11,6 +11,7 @@ const express = require("express");
 const generateToken = require("../../utils/account");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
+const sendMail = require("../../utils/sendEmail");
 
 router.post("/registerAdmin", async (req, res) => {
   const salt = await bcrypt.genSalt(10);
@@ -58,6 +59,33 @@ router.post("/register", async (req, res) => {
   }
 });
 
+
+
+async function sendCode(mail, user_id) {
+  const randomNumber = Math.floor(1000 + Math.random() * 9000);
+  const salt = await bcrypt.genSalt(10);
+  const hashedNumber = await bcrypt.hash(randomNumber.toString(), salt);
+
+  const sqlQuery1 = "UPDATE accounts SET verify_code = $1 WHERE id = $2";
+  await client.query(sqlQuery1, [hashedNumber.toString().trim(), user_id]);
+  await sendMail(mail, randomNumber, "verifycode");
+}
+
+
+router.get("/sendagain", isUser, async (req, res) => {
+  try {
+    let mail = req.body.mail ;
+    let id = req.body.user_id ;
+   console.log(mail,id);
+    await sendCode(mail, id);
+    res.json({ msg: "Code sent again successfully" });
+  } catch (error) {
+    console.error("Send code error:", error);
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
+});
+
+
 router.post("/login", async (req, res) => {
   try {
     const { error } = validateLogin(req.body);
@@ -77,9 +105,21 @@ router.post("/login", async (req, res) => {
     const isPasswordMatch = await bcrypt.compare(pass, hashedPassword);
 
     if (isPasswordMatch) {
-      // If password matches, generate and send JWT token
+    let active = false ;
+    if(role=="user"){
+    let result2 = await client.query("SELECT * FROM account_active WHERE user_id = $1 ;",[id]);
+    if(result2.rows.length>0)
+     {active = true ;}
+    else 
+    {
+      await sendCode(mail,id);
+    }
+  }else
+  {
+    active = true ;
+  }
       const token = generateToken(id, mail, role); // Using mail from request body instead of result
-      res.json({ token, role });
+      res.json({ token, role , active });
     } else {
       // If password doesn't match, return error message
       res.status(401).json({ msg: "Invalid email or password" }); // Correcting status code and message
@@ -89,5 +129,108 @@ router.post("/login", async (req, res) => {
     return res.status(500).json({ msg: "Internal Server Error" });
   }
 });
+
+
+
+
+router.post("/verifycode", async (req, res) => {
+  try {
+    const { error } = validateEmail(req.body);
+    if (error) {
+      return res.status(400).json({ msg: error.details[0].message });
+    }
+
+    const sqlQuery = "SELECT * FROM accounts WHERE mail = $1";
+    const result = await client.query(sqlQuery, [req.body.mail]);
+
+    if (result.rows.length > 0) {
+      const user = result.rows[0];
+      await sendCode(user.mail,user.id);
+      res.json("email send successfully !");
+    } else {
+      return res.status(404).json({ msg: "No account for this user" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ msg: "Internal server error" });
+  }
+});
+
+router.post("/resetpass", async (req, res) => {
+  const { error } = validateResetpass({
+    code: req.body.code,
+    mail: req.body.mail,
+    pass: req.body.pass,
+  });
+
+  // Check if there's a validation error
+  if (error) {
+    return res.status(400).json({ msg: error.details[0].message }); // Change status to 400 for validation errors
+  }
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(req.body.pass, salt);
+
+    const verifyCode = req.body.code.trim(); // Trim the verify code
+    const mail = req.body.mail.trim(); // Trim the email
+    const sqlQuery = "SELECT * FROM accounts WHERE mail = $1";
+    const result = await client.query(sqlQuery, [mail]);
+
+    const user = result.rows[0];
+
+    // Check if the user exists
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(verifyCode, user.verify_code.trim());
+
+    // Check if the verification code matches
+    if (isPasswordMatch) {
+      const sqlQuery1 = "UPDATE accounts SET pass = $1 WHERE id = $2";
+      await client.query(sqlQuery1, [hashedPassword, user.id]);
+
+      return res.json({ msg: "Password changed successfully" });
+    } else {
+      return res.status(401).json({ msg: "Verification code is incorrect" }); // Use 401 for authentication errors
+    }
+  } catch (err) {
+    console.error("Error in resetpass route:", err);
+    return res.status(500).json({ msg: "Internal server error" }); // Handle internal server errors
+  }
+});
+
+
+
+router.post("/active", isUser, async (req, res) => {
+  try {
+    const { user_id, code } = req.body;
+    const vcodeResult = await client.query("SELECT verify_code FROM accounts WHERE id = $1", [user_id]);
+    const vcode = vcodeResult.rows[0]?.verify_code;
+    
+    if (!vcode) {
+      return res.status(404).json({ msg: "User not found or verification code not set" });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(code, vcode);
+
+    if (isPasswordMatch) {
+      await client.query("INSERT INTO account_active (user_id) VALUES ($1)", [user_id]);
+      return res.json({ msg: "Account activated successfully" });
+    } else {
+      return res.status(400).json({ msg: "Verification code is incorrect" });
+    }
+  } catch (error) {
+    console.error("Error in /active endpoint:", error);
+    return res.status(500).json({ msg: "Internal server error" });
+  }
+});
+
+
+
+
+
+
 
 module.exports = router;
