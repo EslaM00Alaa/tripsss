@@ -85,44 +85,43 @@ router.get("/sendagain", isUser, async (req, res) => {
   }
 });
 
-
 router.post("/login", async (req, res) => {
   try {
     const { error } = validateLogin(req.body);
     if (error) return res.status(400).json({ msg: error.details[0].message });
 
-    const { mail, pass } = req.body; // Destructuring the mail and pass directly
+    const { mail, pass } = req.body;
 
-    // Assuming get_user function returns user information including hashed password
     const result = await client.query("SELECT * FROM get_user($1);", [mail]);
     if (result.rows.length === 0) {
-      return res.status(404).json({ msg: "No user found for this account" }); // Correcting typo
+      return res.status(404).json({ msg: "No user found for this account" });
     }
 
-    const { id, pass: hashedPassword, role } = result.rows[0]; // Renaming pass to hashedPassword
+    const { id, pass: hashedPassword, role } = result.rows[0];
 
-    // Comparing the provided password with the hashed password using bcrypt
     const isPasswordMatch = await bcrypt.compare(pass, hashedPassword);
 
     if (isPasswordMatch) {
-    let active = false ;
-    if(role=="user"){
-    let result2 = await client.query("SELECT * FROM account_active WHERE user_id = $1 ;",[id]);
-    if(result2.rows.length>0)
-     {active = true ;}
-    else 
-    {
-      await sendCode(mail,id);
-    }
-  }else
-  {
-    active = true ;
-  }
-      const token = generateToken(id, mail, role); // Using mail from request body instead of result
-      res.json({ token, role , active });
+      let active = false;
+
+      if (role === "user") {
+        const result2 = await client.query("SELECT * FROM account_active WHERE user_id = $1 ;", [id]);
+
+        if (result2.rows.length > 0) {
+          active = true;
+        } else {
+          // If user is not active, send activation code and update account_active table
+          await sendCode(mail, id);
+          await client.query("INSERT INTO account_active (user_id) VALUES ($1);", [id]);
+        }
+      } else {
+        active = true;
+      }
+
+      const token = generateToken(id, mail, role);
+      res.json({ token, role, active });
     } else {
-      // If password doesn't match, return error message
-      res.status(401).json({ msg: "Invalid email or password" }); // Correcting status code and message
+      res.status(401).json({ msg: "Invalid email or password" });
     }
   } catch (error) {
     console.error("Login error:", error);
