@@ -105,8 +105,6 @@ async function isReady() {
       "accounts",
       "orders",
       "feedbacks",
-      "account_active",
-      "feedbacks",
       "account_active"
     ];
 
